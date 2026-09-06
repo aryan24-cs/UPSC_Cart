@@ -2,8 +2,16 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ensureDatabaseSeeded } from "@/lib/seedHelper";
 
+let cachedCategories: any = null;
+let lastCacheTime = 0;
+
 export async function GET() {
   try {
+    const now = Date.now();
+    if (cachedCategories && now - lastCacheTime < 60000) {
+      return NextResponse.json({ categories: cachedCategories });
+    }
+
     await ensureDatabaseSeeded(db);
     const categories = await db.category.findMany({
       include: {
@@ -16,6 +24,9 @@ export async function GET() {
       },
       orderBy: { sortOrder: "asc" },
     });
+
+    cachedCategories = categories;
+    lastCacheTime = now;
 
     return NextResponse.json({ categories });
   } catch (error) {

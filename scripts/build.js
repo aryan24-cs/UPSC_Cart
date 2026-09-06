@@ -1,10 +1,19 @@
 const { execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
 
-const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
-const env = { ...process.env, DATABASE_URL: dbUrl };
+// Load .env if present
+try {
+  if (typeof process.loadEnvFile === "function") {
+    process.loadEnvFile(path.join(__dirname, "../.env"));
+  }
+} catch (e) {}
+
+const dbUrl = process.env.DATABASE_URL;
+const env = { ...process.env };
 
 console.log("UPSC Cart Build Step initialized.");
-console.log("Using DATABASE_URL:", dbUrl);
+console.log("Using Database:", dbUrl ? "Remote / Configured" : "Default");
 
 function run(cmd) {
   console.log(`\n> ${cmd}`);

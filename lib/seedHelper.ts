@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 let isSeeding = false;
+let databaseVerifiedSeeded = false;
 
 function seedHash(password: string): string {
   const salt = "upsc_salt_secure";
@@ -10,7 +11,7 @@ function seedHash(password: string): string {
 }
 
 export async function ensureDatabaseSeeded(prisma: PrismaClient) {
-  if (isSeeding) return;
+  if (databaseVerifiedSeeded || isSeeding) return;
 
   try {
     const [roomCount, listingCount, serviceCount] = await Promise.all([
@@ -20,6 +21,7 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
     ]);
 
     if (roomCount > 0 && listingCount > 0 && serviceCount > 0) {
+      databaseVerifiedSeeded = true;
       return; // Database is fully populated
     }
 
@@ -788,6 +790,7 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       });
     }
 
+    databaseVerifiedSeeded = true;
     console.log("UPSC Cart demo database successfully populated!");
   } catch (err) {
     console.error("Auto-seeding error:", err);
