@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FFFFFF;
+  --background-secondary: #FAFAF9;
+  --foreground: #18181B;
+  --foreground-secondary: #71717A;
+  --foreground-muted: #A1A1AA;
+  --border: #E4E4E7;
+  --border-subtle: #F4F4F5;
+  --muted-bg: #F4F4F5;
+  --primary: #F97316;
+  --primary-hover: #EA580C;
+  --primary-subtle: #FFF7ED;
+  --success: #16A34A;
+  --danger: #DC2626;
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sat: env(safe-area-inset-top, 0px);
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+body {
+  background-color: var(--background-secondary);
+  color: var(--foreground);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Safe Area Helpers */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar while keeping functionality */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom subtle scrollbar for desktop */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #FAFAF9;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #E4E4E7;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #D4D4D8;
+  }
+}
+
+/* Touch mobile optimization */
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+/* Subtle micro-transitions (150ms) */
+button, a {
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Touch tap target minimums */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}

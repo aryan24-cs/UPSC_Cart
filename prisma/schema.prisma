@@ -1,0 +1,292 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String   @id @default(cuid())
+  name             String
+  email            String   @unique
+  password         String?
+  phone            String?
+  avatar           String?
+  role             String   @default("USER") // USER, ADMIN
+  isVerified       Boolean  @default(false)
+  isMobileVerified Boolean  @default(false)
+  bio              String?
+  coachingHub      String?  @default("Old Rajinder Nagar")
+  optionalSubject  String?  // e.g. PSIR, Geography, Sociology, Anthropology
+  targetYear       Int?     @default(2026)
+  responseRate     String?  @default("98%")
+  responseTime     String?  @default("< 15 mins")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  listings         Listing[]
+  favorites        Favorite[]
+  buyerOffers      Offer[]         @relation("BuyerOffers")
+  sellerOffers     Offer[]         @relation("SellerOffers")
+  buyerConvs       Conversation[]  @relation("BuyerConversations")
+  sellerConvs      Conversation[]  @relation("SellerConversations")
+  sentMessages     Message[]       @relation("SentMessages")
+  roomListings     RoomListing[]
+  flatmateProfiles FlatmateProfile[]
+  reportsFiled     Report[]        @relation("Reporter")
+  reviewsGiven     Review[]        @relation("Reviewer")
+  reviewsReceived  Review[]        @relation("TargetUser")
+  notifications    Notification[]
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String   // e.g. Old Rajinder Nagar
+  slug      String   @unique
+  city      String   @default("Delhi")
+  state     String   @default("Delhi")
+  area      String   // Central Delhi, North Delhi, etc.
+  latitude  Float
+  longitude Float
+  radiusKm  Float    @default(5.0)
+
+  listings     Listing[]
+  roomListings RoomListing[]
+}
+
+model Category {
+  id            String        @id @default(cuid())
+  name          String
+  slug          String        @unique
+  icon          String?       // Lucide icon name
+  description   String?
+  sortOrder     Int           @default(0)
+  subcategories Subcategory[]
+  listings      Listing[]
+}
+
+model Subcategory {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String
+  categoryId String
+  sortOrder  Int      @default(0)
+
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model Listing {
+  id               String         @id @default(cuid())
+  slug             String         @unique
+  title            String
+  description      String
+  price            Float
+  originalPrice    Float?
+  isNegotiable     Boolean        @default(true)
+  condition        String         @default("GOOD") // NEW, LIKE_NEW, GOOD, FAIR
+  status           String         @default("ACTIVE") // ACTIVE, RESERVED, SOLD, UNDER_REVIEW, EXPIRED
+  sellerId         String
+  categoryId       String
+  subcategory      String?
+  locationId       String
+  latitude         Float?
+  longitude        Float?
+  distanceStr      String?        @default("Within hub")
+  views            Int            @default(0)
+  brand            String?
+  edition          String?
+  purchaseYear     String?
+  reasonForSelling String?
+  tags             String?        // Comma separated tags
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  expiresAt        DateTime?
+
+  // Relations
+  seller        User           @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  category      Category       @relation(fields: [categoryId], references: [id])
+  location      Location       @relation(fields: [locationId], references: [id])
+  images        ListingImage[]
+  offers        Offer[]
+  conversations Conversation[]
+  favorites     Favorite[]
+  reviews       Review[]
+}
+
+model ListingImage {
+  id        String  @id @default(cuid())
+  listingId String
+  url       String
+  isCover   Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Offer {
+  id            String   @id @default(cuid())
+  listingId     String
+  buyerId       String
+  sellerId      String
+  amount        Float
+  counterAmount Float?
+  status        String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, COUNTERED
+  message       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyer   User    @relation("BuyerOffers", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller  User    @relation("SellerOffers", fields: [sellerId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  listingId     String
+  buyerId       String
+  sellerId      String
+  lastMessageAt DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  listing  Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyer    User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller   User      @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([listingId, buyerId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  type           String       @default("TEXT") // TEXT, IMAGE, OFFER_UPDATE, SYSTEM
+  isRead         Boolean      @default(false)
+  offerId        String?
+  createdAt      DateTime     @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+}
+
+model RoomListing {
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  ownerId            String
+  title              String
+  description        String
+  rent               Int
+  deposit            Int      @default(0)
+  maintenance        Int      @default(0)
+  roomType           String   @default("SINGLE") // SINGLE, DOUBLE, FLAT, PG
+  furnishing         String   @default("FURNISHED") // FURNISHED, SEMI_FURNISHED, UNFURNISHED
+  genderPreference   String   @default("ANY") // ANY, MALE, FEMALE
+  availableFrom      String   @default("Immediately")
+  locationId         String
+  addressApprox      String
+  nearbyInstitutes   String   // e.g. Vajiram (200m), Vision IAS (400m), Next IAS (350m)
+  distanceToCoaching String   @default("2 mins walk")
+  amenities          String   // Comma separated: AC, WiFi, Geyser, RO Water, Study Table, Balcony, Food/Mess
+  houseRules         String?  @default("Peaceful study environment, No loud music late at night.")
+  images             String   // JSON array of image URLs
+  status             String   @default("ACTIVE") // ACTIVE, OCCUPIED
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  owner    User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id])
+}
+
+model FlatmateProfile {
+  id                  String   @id @default(cuid())
+  userId              String
+  title               String
+  budget              Int
+  preferredArea       String   // e.g. Old Rajinder Nagar
+  gender              String   @default("ANY") // MALE, FEMALE, ANY
+  moveInDate          String   @default("This Month")
+  studySchedule       String   @default("Night Owl (10 PM - 4 AM)")
+  foodPreference      String   @default("Veg / Non-Veg OK")
+  smokingPreference   String   @default("Non-smoker strictly")
+  roomTypePreference  String   @default("Single room in shared flat")
+  bio                 String?
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Service {
+  id           String   @id @default(cuid())
+  title        String
+  category     String   // TIFFIN, PRINTING, MOVERS, LAUNDRY, LIBRARY, OTHER
+  providerName String
+  phone        String
+  locationId   String?
+  locationName String   // e.g. Old Rajinder Nagar
+  pricingStr   String   // e.g. "₹3,200/month (2 meals/day)" or "₹0.60/page photocopy"
+  rating       Float    @default(4.8)
+  reviewCount  Int      @default(34)
+  description  String
+  isVerified   Boolean  @default(true)
+  badges       String   @default("FSSAI Registered,Hygiene Verified")
+  createdAt    DateTime @default(now())
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  reporterId      String
+  targetType      String   // LISTING, USER, MESSAGE
+  targetId        String
+  reason          String   // SCAM, FAKE_LISTING, WRONG_CATEGORY, OFFENSIVE, DUPLICATE, OTHER
+  details         String?
+  status          String   @default("PENDING") // PENDING, RESOLVED, DISMISSED
+  resolutionNotes String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  reporter User @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  reviewerId   String
+  targetUserId String
+  listingId    String?
+  rating       Int      @default(5) // 1 to 5
+  comment      String
+  createdAt    DateTime @default(now())
+
+  reviewer   User     @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  targetUser User     @relation("TargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  listing    Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // MESSAGE, OFFER, OFFER_ACCEPTED, OFFER_REJECTED, RESERVED, PRICE_DROP, FAVORITE, SYSTEM
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
