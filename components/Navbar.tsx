@@ -142,7 +142,7 @@ export default function Navbar() {
           </form>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#71717A]">
+          <nav className="hidden lg:flex items-center gap-5 text-xs font-medium text-[#71717A]">
             {isAdmin ? (
               <>
                 <Link
@@ -171,12 +171,38 @@ export default function Navbar() {
             ) : (
               <>
                 <Link
+                  href="/#features"
+                  className="hover:text-[#18181B] transition-colors"
+                >
+                  Features
+                </Link>
+                <Link
+                  href="/#how"
+                  className="hover:text-[#18181B] transition-colors"
+                >
+                  How it works
+                </Link>
+                <Link
+                  href="/#download"
+                  className="hover:text-[#18181B] transition-colors"
+                >
+                  Download
+                </Link>
+                <a
+                  href="https://t.me/+0_sR0hPmNMA5OWM1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[#18181B] transition-colors flex items-center gap-1"
+                >
+                  <span>Community</span>
+                </a>
+                <Link
                   href="/marketplace"
-                  className={`hover:text-[#18181B] transition-colors ${
-                    pathname.startsWith("/marketplace") ? "text-[#18181B] font-semibold" : ""
+                  className={`hover:text-[#18181B] transition-colors font-semibold text-[#F97316] ${
+                    pathname.startsWith("/marketplace") ? "underline underline-offset-4" : ""
                   }`}
                 >
-                  Marketplace
+                  🔥 Best Deals
                 </Link>
                 <Link
                   href="/rooms"
