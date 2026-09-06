@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { createSession, DEMO_ASPIRANT_USER, DEMO_ADMIN_USER } from "@/lib/auth";
+import { ensureDatabaseSeeded } from "@/lib/seedHelper";
 
 export async function POST(req: Request) {
   try {
+    await ensureDatabaseSeeded(db);
     const body = await req.json().catch(() => ({}));
     const role = body.role || "USER";
 

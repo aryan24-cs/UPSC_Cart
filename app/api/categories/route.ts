@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { ensureDatabaseSeeded } from "@/lib/seedHelper";
 
 export async function GET() {
   try {
+    await ensureDatabaseSeeded(db);
     const categories = await db.category.findMany({
       include: {
         subcategories: {

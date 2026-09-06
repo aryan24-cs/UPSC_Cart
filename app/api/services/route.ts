@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { ensureDatabaseSeeded } from "@/lib/seedHelper";
 
 export async function GET(req: NextRequest) {
   try {
+    await ensureDatabaseSeeded(db);
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
 

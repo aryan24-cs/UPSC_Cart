@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { ensureDatabaseSeeded } from "@/lib/seedHelper";
 
 export async function GET(req: NextRequest) {
   try {
+    await ensureDatabaseSeeded(db);
     const { searchParams } = new URL(req.url);
     const locationSlug = searchParams.get("location");
     const roomType = searchParams.get("roomType");
