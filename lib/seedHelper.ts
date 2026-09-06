@@ -13,17 +13,24 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
   if (isSeeding) return;
 
   try {
-    const categoryCount = await prisma.category.count();
-    if (categoryCount > 0) {
-      return; // Already seeded
+    const [roomCount, listingCount, serviceCount] = await Promise.all([
+      prisma.roomListing.count().catch(() => 0),
+      prisma.listing.count().catch(() => 0),
+      prisma.service.count().catch(() => 0),
+    ]);
+
+    if (roomCount > 0 && listingCount > 0 && serviceCount > 0) {
+      return; // Database is fully populated
     }
 
     isSeeding = true;
-    console.log("Auto-seeding UPSC Cart records into empty runtime database...");
+    console.log("Auto-seeding UPSC Cart demo records into runtime database...");
 
-    // 1. Locations
-    const locORN = await prisma.location.create({
-      data: {
+    // 1. Locations (upsert)
+    const locORN = await prisma.location.upsert({
+      where: { slug: "old-rajinder-nagar" },
+      update: {},
+      create: {
         id: "loc_orn",
         name: "Old Rajinder Nagar",
         slug: "old-rajinder-nagar",
@@ -36,8 +43,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    const locMN = await prisma.location.create({
-      data: {
+    const locMN = await prisma.location.upsert({
+      where: { slug: "mukherjee-nagar" },
+      update: {},
+      create: {
         id: "loc_mn",
         name: "Mukherjee Nagar",
         slug: "mukherjee-nagar",
@@ -50,8 +59,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    const locKB = await prisma.location.create({
-      data: {
+    const locKB = await prisma.location.upsert({
+      where: { slug: "karol-bagh" },
+      update: {},
+      create: {
         id: "loc_kb",
         name: "Karol Bagh",
         slug: "karol-bagh",
@@ -64,8 +75,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    const locPN = await prisma.location.create({
-      data: {
+    const locPN = await prisma.location.upsert({
+      where: { slug: "patel-nagar" },
+      update: {},
+      create: {
         id: "loc_pn",
         name: "Patel Nagar",
         slug: "patel-nagar",
@@ -78,8 +91,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    const locLN = await prisma.location.create({
-      data: {
+    const locLN = await prisma.location.upsert({
+      where: { slug: "laxmi-nagar" },
+      update: {},
+      create: {
         id: "loc_ln",
         name: "Laxmi Nagar",
         slug: "laxmi-nagar",
@@ -93,128 +108,88 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
     });
 
     // 2. Categories
-    const catBooks = await prisma.category.create({
-      data: {
+    const catBooks = await prisma.category.upsert({
+      where: { slug: "books" },
+      update: {},
+      create: {
         id: "cat_books",
         name: "Books",
         slug: "books",
         icon: "BookOpen",
         description: "Standard reference books, NCERTs & optionals",
         sortOrder: 1,
-        subcategories: {
-          create: [
-            { name: "Polity", slug: "polity", sortOrder: 1 },
-            { name: "History & Culture", slug: "history", sortOrder: 2 },
-            { name: "Economy", slug: "economy", sortOrder: 3 },
-            { name: "Geography", slug: "geography", sortOrder: 4 },
-            { name: "NCERT Complete Sets", slug: "ncert", sortOrder: 5 },
-            { name: "Ethics (GS4)", slug: "ethics", sortOrder: 6 },
-            { name: "PSIR Optional", slug: "psir-optional", sortOrder: 7 },
-            { name: "Sociology Optional", slug: "sociology-optional", sortOrder: 8 },
-            { name: "Anthropology Optional", slug: "anthropology-optional", sortOrder: 9 },
-          ],
-        },
       },
     });
 
-    const catNotes = await prisma.category.create({
-      data: {
+    const catNotes = await prisma.category.upsert({
+      where: { slug: "notes" },
+      update: {},
+      create: {
         id: "cat_notes",
         name: "Notes",
         slug: "notes",
         icon: "FileText",
         description: "Vision IAS, Vajiram, NEXT IAS handouts and topper notes",
         sortOrder: 2,
-        subcategories: {
-          create: [
-            { name: "Vision IAS", slug: "vision-ias", sortOrder: 1 },
-            { name: "Vajiram & Ravi", slug: "vajiram-ravi", sortOrder: 2 },
-            { name: "NEXT IAS", slug: "next-ias", sortOrder: 3 },
-            { name: "ForumIAS", slug: "forum-ias", sortOrder: 4 },
-            { name: "Drishti IAS", slug: "drishti-ias", sortOrder: 5 },
-            { name: "Topper Handwritten Notes", slug: "topper-notes", sortOrder: 6 },
-          ],
-        },
       },
     });
 
-    const catTest = await prisma.category.create({
-      data: {
+    await prisma.category.upsert({
+      where: { slug: "test-series" },
+      update: {},
+      create: {
         id: "cat_test",
         name: "Test Series",
         slug: "test-series",
         icon: "Award",
         description: "Prelims & Mains test booklets with model answers",
         sortOrder: 3,
-        subcategories: {
-          create: [
-            { name: "Prelims GS Tests", slug: "prelims-gs", sortOrder: 1 },
-            { name: "CSAT Test Series", slug: "csat-tests", sortOrder: 2 },
-            { name: "Mains Answer Writing", slug: "mains-tests", sortOrder: 3 },
-          ],
-        },
       },
     });
 
-    const catFurniture = await prisma.category.create({
-      data: {
+    const catFurniture = await prisma.category.upsert({
+      where: { slug: "furniture" },
+      update: {},
+      create: {
         id: "cat_furniture",
         name: "Furniture",
         slug: "furniture",
         icon: "Armchair",
         description: "Study tables, ergonomic chairs, book racks",
         sortOrder: 4,
-        subcategories: {
-          create: [
-            { name: "Study Tables", slug: "study-tables", sortOrder: 1 },
-            { name: "Ergonomic Chairs", slug: "chairs", sortOrder: 2 },
-            { name: "Book Racks & Shelves", slug: "bookshelves", sortOrder: 3 },
-            { name: "Bookstands & Accessories", slug: "accessories", sortOrder: 4 },
-          ],
-        },
       },
     });
 
-    const catAppliances = await prisma.category.create({
-      data: {
+    const catAppliances = await prisma.category.upsert({
+      where: { slug: "appliances" },
+      update: {},
+      create: {
         id: "cat_appliances",
         name: "Appliances",
         slug: "appliances",
         icon: "Fan",
         description: "Coolers, table fans, kettles, room heaters",
         sortOrder: 5,
-        subcategories: {
-          create: [
-            { name: "Table Fans", slug: "table-fans", sortOrder: 1 },
-            { name: "Room Coolers", slug: "coolers", sortOrder: 2 },
-            { name: "Electric Kettles", slug: "kettles", sortOrder: 3 },
-            { name: "Water Dispensers & Purifiers", slug: "water-purifiers", sortOrder: 4 },
-          ],
-        },
       },
     });
 
-    const catElectronics = await prisma.category.create({
-      data: {
+    await prisma.category.upsert({
+      where: { slug: "electronics" },
+      update: {},
+      create: {
         id: "cat_electronics",
         name: "Electronics",
         slug: "electronics",
         icon: "Laptop",
         description: "Tablets, study monitors, noise cancelling headphones, desk lamps",
         sortOrder: 6,
-        subcategories: {
-          create: [
-            { name: "Tablets / iPads", slug: "tablets", sortOrder: 1 },
-            { name: "Headphones & Earbuds", slug: "headphones", sortOrder: 2 },
-            { name: "Desk Lamps & Lights", slug: "desk-lamps", sortOrder: 3 },
-            { name: "Power Banks & Cables", slug: "power-banks", sortOrder: 4 },
-          ],
-        },
       },
     });
 
-    await prisma.category.create({
-      data: {
+    await prisma.category.upsert({
+      where: { slug: "stationery" },
+      update: {},
+      create: {
         id: "cat_stationery",
         name: "Stationery",
         slug: "stationery",
@@ -224,8 +199,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    await prisma.category.create({
-      data: {
+    await prisma.category.upsert({
+      where: { slug: "room-essentials" },
+      update: {},
+      create: {
         id: "cat_room_essentials",
         name: "Room Essentials",
         slug: "room-essentials",
@@ -236,8 +213,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
     });
 
     // 3. Users
-    const userAryan = await prisma.user.create({
-      data: {
+    const userAryan = await prisma.user.upsert({
+      where: { email: "aryan.nda.2163@gmail.com" },
+      update: {},
+      create: {
         id: "user_aryan",
         name: "Aryan Kumar",
         email: "aryan.nda.2163@gmail.com",
@@ -256,8 +235,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    await prisma.user.create({
-      data: {
+    await prisma.user.upsert({
+      where: { email: "demo.user@upsc-cart.local" },
+      update: {},
+      create: {
         id: "demo-user-aspirant",
         name: "Aryan Kumar (Demo)",
         email: "demo.user@upsc-cart.local",
@@ -276,8 +257,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    const userPriya = await prisma.user.create({
-      data: {
+    const userPriya = await prisma.user.upsert({
+      where: { email: "priya.aspirant@gmail.com" },
+      update: {},
+      create: {
         id: "user_priya",
         name: "Priya Sharma",
         email: "priya.aspirant@gmail.com",
@@ -296,8 +279,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    const userVikram = await prisma.user.create({
-      data: {
+    const userVikram = await prisma.user.upsert({
+      where: { email: "vikram.orn@gmail.com" },
+      update: {},
+      create: {
         id: "user_vikram",
         name: "Vikram Aditya",
         email: "vikram.orn@gmail.com",
@@ -316,8 +301,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    await prisma.user.create({
-      data: {
+    await prisma.user.upsert({
+      where: { email: "demo.admin@upsc-cart.local" },
+      update: {},
+      create: {
         id: "demo-admin-user",
         name: "Vikas Sharma (Admin)",
         email: "demo.admin@upsc-cart.local",
@@ -334,9 +321,11 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    // 4. Seed Listings
-    const lFan = await prisma.listing.create({
-      data: {
+    // 4. Listings (upsert)
+    const lFan = await prisma.listing.upsert({
+      where: { slug: "high-speed-table-fan-old-rajinder-nagar" },
+      update: {},
+      create: {
         id: "list_fan",
         slug: "high-speed-table-fan-old-rajinder-nagar",
         title: "High Speed Table Fan",
@@ -367,8 +356,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    await prisma.listing.create({
-      data: {
+    await prisma.listing.upsert({
+      where: { slug: "reliable-cooler-for-summer-mukherjee-nagar" },
+      update: {},
+      create: {
         id: "list_cooler",
         slug: "reliable-cooler-for-summer-mukherjee-nagar",
         title: "Reliable Cooler for Summer",
@@ -399,8 +390,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    const lPolity = await prisma.listing.create({
-      data: {
+    const lPolity = await prisma.listing.upsert({
+      where: { slug: "indian-polity-m-laxmikanth-7th-edition-orn" },
+      update: {},
+      create: {
         id: "list_polity",
         slug: "indian-polity-m-laxmikanth-7th-edition-orn",
         title: "Indian Polity by M. Laxmikanth (7th Edition)",
@@ -433,8 +426,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    const lVision = await prisma.listing.create({
-      data: {
+    const lVision = await prisma.listing.upsert({
+      where: { slug: "vision-ias-gs-prelims-test-series-2025-orn" },
+      update: {},
+      create: {
         id: "list_vision",
         slug: "vision-ias-gs-prelims-test-series-2025-orn",
         title: "Vision IAS GS Prelims 2025 Test Series (35 Tests + Model Solutions)",
@@ -466,8 +461,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    await prisma.listing.create({
-      data: {
+    await prisma.listing.upsert({
+      where: { slug: "sturdy-wooden-study-table-with-bookshelf-orn" },
+      update: {},
+      create: {
         id: "list_table",
         slug: "sturdy-wooden-study-table-with-bookshelf-orn",
         title: "Solid Sheesham Finish Study Table with Integrated Bookshelf",
@@ -498,8 +495,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    await prisma.listing.create({
-      data: {
+    await prisma.listing.upsert({
+      where: { slug: "spectrum-brief-history-of-modern-india-rajiv-ahir" },
+      update: {},
+      create: {
         id: "list_spectrum",
         slug: "spectrum-brief-history-of-modern-india-rajiv-ahir",
         title: "Spectrum: A Brief History of Modern India (Rajiv Ahir)",
@@ -530,8 +529,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    await prisma.listing.create({
-      data: {
+    await prisma.listing.upsert({
+      where: { slug: "vajiram-ravi-psir-optional-complete-handouts" },
+      update: {},
+      create: {
         id: "list_psir",
         slug: "vajiram-ravi-psir-optional-complete-handouts",
         title: "Vajiram & Ravi PSIR Optional Complete Handouts (Paper 1 & Paper 2)",
@@ -561,8 +562,10 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    await prisma.listing.create({
-      data: {
+    await prisma.listing.upsert({
+      where: { slug: "ergonomic-high-back-mesh-study-chair-patel-nagar" },
+      update: {},
+      create: {
         id: "list_chair",
         slug: "ergonomic-high-back-mesh-study-chair-patel-nagar",
         title: "Ergonomic High Back Mesh Study Chair with Lumbar Support",
@@ -592,9 +595,12 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    // 5. Seed Room Listings
-    await prisma.roomListing.create({
-      data: {
+    // 5. Room Listings (upsert)
+    await prisma.roomListing.upsert({
+      where: { slug: "single-room-with-balcony-near-orn-bada-bazar" },
+      update: {},
+      create: {
+        id: "room_single_orn",
         slug: "single-room-with-balcony-near-orn-bada-bazar",
         ownerId: userVikram.id,
         title: "Single Private Room with Balcony near ORN Bada Bazar",
@@ -620,8 +626,11 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    await prisma.roomListing.create({
-      data: {
+    await prisma.roomListing.upsert({
+      where: { slug: "double-sharing-ac-pg-near-batra-cinema-mukherjee-nagar" },
+      update: {},
+      create: {
+        id: "room_pg_mn",
         slug: "double-sharing-ac-pg-near-batra-cinema-mukherjee-nagar",
         ownerId: userVikram.id,
         title: "Double Sharing AC PG Room with Home-Style Meals",
@@ -647,144 +656,139 @@ export async function ensureDatabaseSeeded(prisma: PrismaClient) {
       },
     });
 
-    // 6. Seed Flatmate Profiles
-    await prisma.flatmateProfile.create({
-      data: {
-        userId: userAryan.id,
-        title: "UPSC 2026 Aspirant seeking Flatmate for 2BHK in ORN",
-        budget: 8500,
-        preferredArea: "Old Rajinder Nagar / Karol Bagh",
-        gender: "MALE",
-        moveInDate: "Immediate",
-        studySchedule: "Day Owl (6 AM - 11 PM), quiet study environment",
-        foodPreference: "Pure Veg preferred / Cook sharing",
-        smokingPreference: "Strictly Non-smoker",
-        roomTypePreference: "Separate private room in shared 2BHK/3BHK",
-        bio: "Preparing for CSE 2026 with PSIR optional. Looking for a serious, disciplined co-aspirant to share a peaceful 2BHK flat near Vajiram.",
-      },
-    });
+    // 6. Flatmate Profile (upsert)
+    const fpCount = await prisma.flatmateProfile.count().catch(() => 0);
+    if (fpCount === 0) {
+      await prisma.flatmateProfile.create({
+        data: {
+          userId: userAryan.id,
+          title: "UPSC 2026 Aspirant seeking Flatmate for 2BHK in ORN",
+          budget: 8500,
+          preferredArea: "Old Rajinder Nagar / Karol Bagh",
+          gender: "MALE",
+          moveInDate: "Immediate",
+          studySchedule: "Day Owl (6 AM - 11 PM), quiet study environment",
+          foodPreference: "Pure Veg preferred / Cook sharing",
+          smokingPreference: "Strictly Non-smoker",
+          roomTypePreference: "Separate private room in shared 2BHK/3BHK",
+          bio: "Preparing for CSE 2026 with PSIR optional. Looking for a serious, disciplined co-aspirant to share a peaceful 2BHK flat near Vajiram.",
+        },
+      });
+    }
 
-    // 7. Seed Student Services
-    await prisma.service.create({
-      data: {
-        title: "Aggarwal Pure Veg Home Tiffin Service",
-        category: "TIFFIN",
-        providerName: "Ramesh Aggarwal",
-        phone: "+91 98711 22334",
-        locationId: locORN.id,
-        locationName: "Old Rajinder Nagar & Karol Bagh",
-        pricingStr: "₹3,200/month (Lunch + Dinner, 6 days/week)",
-        rating: 4.9,
-        reviewCount: 148,
-        description: "Fresh, low-oil, nutritious home food tailored for aspirants. Includes 4 chapatis (ghee applied on request), dal, seasonal sabzi, rice, and fresh salad. Delivered hot to your room doorstep.",
-        isVerified: true,
-        badges: "FSSAI Registered,Hygiene Certified,Timely Delivery",
-      },
-    });
+    // 7. Services (upsert)
+    const svcCount = await prisma.service.count().catch(() => 0);
+    if (svcCount === 0) {
+      await prisma.service.create({
+        data: {
+          title: "Aggarwal Pure Veg Home Tiffin Service",
+          category: "TIFFIN",
+          providerName: "Ramesh Aggarwal",
+          phone: "+91 98711 22334",
+          locationId: locORN.id,
+          locationName: "Old Rajinder Nagar & Karol Bagh",
+          pricingStr: "₹3,200/month (Lunch + Dinner, 6 days/week)",
+          rating: 4.9,
+          reviewCount: 148,
+          description: "Fresh, low-oil, nutritious home food tailored for aspirants. Includes 4 chapatis (ghee applied on request), dal, seasonal sabzi, rice, and fresh salad. Delivered hot to your room doorstep.",
+          isVerified: true,
+          badges: "FSSAI Registered,Hygiene Certified,Timely Delivery",
+        },
+      });
 
-    await prisma.service.create({
-      data: {
-        title: "Shree Balaji Fast Notes Photocopy & Spiral Binding",
-        category: "PRINTING",
-        providerName: "Sunil Sharma",
-        phone: "+91 98102 33445",
-        locationId: locORN.id,
-        locationName: "Bada Bazar, Old Rajinder Nagar",
-        pricingStr: "₹0.60/page B&W, ₹25 Spiral Binding",
-        rating: 4.8,
-        reviewCount: 310,
-        description: "Specialized in quick printing of monthly current affairs compilations, Vision IAS test answer booklets, and coaching handouts. WhatsApp your PDF and pick up ready copies within 15 mins.",
-        isVerified: true,
-        badges: "Fast Turnaround,Laser Quality,Bulk Discounts",
-      },
-    });
+      await prisma.service.create({
+        data: {
+          title: "Shree Balaji Fast Notes Photocopy & Spiral Binding",
+          category: "PRINTING",
+          providerName: "Sunil Sharma",
+          phone: "+91 98102 33445",
+          locationId: locORN.id,
+          locationName: "Bada Bazar, Old Rajinder Nagar",
+          pricingStr: "₹0.60/page B&W, ₹25 Spiral Binding",
+          rating: 4.8,
+          reviewCount: 310,
+          description: "Specialized in quick printing of monthly current affairs compilations, Vision IAS test answer booklets, and coaching handouts. WhatsApp your PDF and pick up ready copies within 15 mins.",
+          isVerified: true,
+          badges: "Fast Turnaround,Laser Quality,Bulk Discounts",
+        },
+      });
 
-    await prisma.service.create({
-      data: {
-        title: "Sankalp 24/7 Silent AC Reading Room & Library",
-        category: "LIBRARY",
-        providerName: "Sankalp Study Center",
-        phone: "+91 98991 44556",
-        locationId: locMN.id,
-        locationName: "Batra Cinema Lane, Mukherjee Nagar",
-        pricingStr: "₹1,600/month (12hr shift) | ₹2,200/month (24hr access)",
-        rating: 4.9,
-        reviewCount: 220,
-        description: "Soundproof, ergonomic study cabins with personal pinboards, LED lamps, power sockets, high-speed optic fiber WiFi, and clean washrooms. Strictly pin-drop silence maintained.",
-        isVerified: true,
-        badges: "Biometric Access,CCTV Monitored,Locker Facility",
-      },
-    });
+      await prisma.service.create({
+        data: {
+          title: "Sankalp 24/7 Silent AC Reading Room & Library",
+          category: "LIBRARY",
+          providerName: "Sankalp Study Center",
+          phone: "+91 98991 44556",
+          locationId: locMN.id,
+          locationName: "Batra Cinema Lane, Mukherjee Nagar",
+          pricingStr: "₹1,600/month (12hr shift) | ₹2,200/month (24hr access)",
+          rating: 4.9,
+          reviewCount: 220,
+          description: "Soundproof, ergonomic study cabins with personal pinboards, LED lamps, power sockets, high-speed optic fiber WiFi, and clean washrooms. Strictly pin-drop silence maintained.",
+          isVerified: true,
+          badges: "Biometric Access,CCTV Monitored,Locker Facility",
+        },
+      });
+    }
 
-    // 8. Seed Conversation & Offer
-    const conv1 = await prisma.conversation.create({
-      data: {
-        id: "conv_aryan_fan",
-        listingId: lFan.id,
-        buyerId: userAryan.id,
-        sellerId: userVikram.id,
-        lastMessageAt: new Date(),
-      },
-    });
+    // 8. Conversations & Offers
+    const convCount = await prisma.conversation.count().catch(() => 0);
+    if (convCount === 0) {
+      const conv1 = await prisma.conversation.create({
+        data: {
+          id: "conv_aryan_fan",
+          listingId: lFan.id,
+          buyerId: userAryan.id,
+          sellerId: userVikram.id,
+          lastMessageAt: new Date(),
+        },
+      });
 
-    await prisma.message.create({
-      data: {
-        conversationId: conv1.id,
-        senderId: userAryan.id,
-        content: "Hello! Is this High Speed Table Fan still available?",
-        type: "TEXT",
-        isRead: true,
-      },
-    });
+      await prisma.message.create({
+        data: {
+          conversationId: conv1.id,
+          senderId: userAryan.id,
+          content: "Hello! Is this High Speed Table Fan still available?",
+          type: "TEXT",
+          isRead: true,
+        },
+      });
 
-    await prisma.message.create({
-      data: {
-        conversationId: conv1.id,
-        senderId: userVikram.id,
-        content: "Hi Aryan, yes it is! The motor is in top condition and speeds work smoothly.",
-        type: "TEXT",
-        isRead: true,
-      },
-    });
+      await prisma.message.create({
+        data: {
+          conversationId: conv1.id,
+          senderId: userVikram.id,
+          content: "Hi Aryan, yes it is! The motor is in top condition and speeds work smoothly.",
+          type: "TEXT",
+          isRead: true,
+        },
+      });
 
-    const offer1 = await prisma.offer.create({
-      data: {
-        id: "offer_aryan_fan_250",
-        listingId: lFan.id,
-        buyerId: userAryan.id,
-        sellerId: userVikram.id,
-        amount: 250,
-        status: "PENDING",
-        message: "Would you accept ₹250? I can collect it from ORN Bada Bazar this evening.",
-      },
-    });
+      const offer1 = await prisma.offer.create({
+        data: {
+          id: "offer_aryan_fan_250",
+          listingId: lFan.id,
+          buyerId: userAryan.id,
+          sellerId: userVikram.id,
+          amount: 250,
+          status: "PENDING",
+          message: "Would you accept ₹250? I can collect it from ORN Bada Bazar this evening.",
+        },
+      });
 
-    await prisma.message.create({
-      data: {
-        conversationId: conv1.id,
-        senderId: userAryan.id,
-        content: "Made an offer for ₹250. Can collect from ORN Bada Bazar today.",
-        type: "OFFER_UPDATE",
-        offerId: offer1.id,
-        isRead: true,
-      },
-    });
+      await prisma.message.create({
+        data: {
+          conversationId: conv1.id,
+          senderId: userAryan.id,
+          content: "Made an offer for ₹250. Can collect from ORN Bada Bazar today.",
+          type: "OFFER_UPDATE",
+          offerId: offer1.id,
+          isRead: true,
+        },
+      });
+    }
 
-    await prisma.favorite.create({
-      data: {
-        userId: userAryan.id,
-        listingId: lPolity.id,
-      },
-    });
-
-    await prisma.favorite.create({
-      data: {
-        userId: userAryan.id,
-        listingId: lVision.id,
-      },
-    });
-
-    console.log("UPSC Cart records auto-seeded successfully!");
+    console.log("UPSC Cart demo database successfully populated!");
   } catch (err) {
     console.error("Auto-seeding error:", err);
   } finally {

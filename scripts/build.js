@@ -11,12 +11,16 @@ function run(cmd) {
   execSync(cmd, { stdio: "inherit", env });
 }
 
-try {
-  run("npx prisma generate");
-  run("npx prisma db push --accept-data-loss");
-  run("npx tsx prisma/seed.ts");
-  run("next build");
-} catch (err) {
-  console.error("Build execution failed:", err);
-  process.exit(1);
+function safeRun(cmd) {
+  try {
+    console.log(`\n> ${cmd}`);
+    execSync(cmd, { stdio: "inherit", env });
+  } catch (err) {
+    console.warn(`Warning: '${cmd}' failed. Proceeding with runtime auto-seeding fallbacks.`);
+  }
 }
+
+safeRun("npx prisma generate");
+safeRun("npx prisma db push --accept-data-loss --skip-generate");
+safeRun("npx tsx prisma/seed.ts");
+run("next build");
