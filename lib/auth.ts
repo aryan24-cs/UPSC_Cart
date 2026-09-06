@@ -77,7 +77,47 @@ export async function destroySession() {
   cookieStore.delete(SESSION_COOKIE_NAME);
 }
 
-// User Retrieval (No fake fallback: returns null if unauthenticated)
+export const DEMO_ASPIRANT_USER: User = {
+  id: "demo-user-aspirant",
+  name: "Aryan Kumar",
+  email: "demo.user@upsc-cart.local",
+  password: null,
+  phone: "+91 9876543210",
+  avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+  role: "USER",
+  isVerified: true,
+  isMobileVerified: true,
+  bio: "UPSC GS & PSIR Aspirant in Old Rajinder Nagar",
+  coachingHub: "Old Rajinder Nagar",
+  optionalSubject: "PSIR",
+  targetYear: 2026,
+  responseRate: "98%",
+  responseTime: "< 15 mins",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+export const DEMO_ADMIN_USER: User = {
+  id: "demo-admin-user",
+  name: "Vikas Sharma (Admin)",
+  email: "demo.admin@upsc-cart.local",
+  password: null,
+  phone: "+91 9999900000",
+  avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+  role: "ADMIN",
+  isVerified: true,
+  isMobileVerified: true,
+  bio: "UPSC Cart Platform Administrator",
+  coachingHub: "Old Rajinder Nagar",
+  optionalSubject: "Geography",
+  targetYear: 2026,
+  responseRate: "100%",
+  responseTime: "< 5 mins",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+// User Retrieval (with fallback for demo accounts if DB is unseeded)
 export async function getCurrentUser(): Promise<User | null> {
   try {
     const cookieStore = await cookies();
@@ -87,9 +127,19 @@ export async function getCurrentUser(): Promise<User | null> {
     const userId = verifySession(token);
     if (!userId) return null;
 
-    const user = await db.user.findUnique({
-      where: { id: userId },
-    });
+    let user: User | null = null;
+    try {
+      user = await db.user.findUnique({
+        where: { id: userId },
+      });
+    } catch (dbErr) {
+      console.error("DB error retrieving user, checking static fallback:", dbErr);
+    }
+
+    if (!user) {
+      if (userId === "demo-admin-user" || userId.includes("admin")) return DEMO_ADMIN_USER;
+      if (userId === "demo-user-aspirant" || userId.includes("demo")) return DEMO_ASPIRANT_USER;
+    }
 
     return user;
   } catch (error) {

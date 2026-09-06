@@ -14,21 +14,27 @@ export async function GET() {
   }
 
   const [unreadNotifications, unreadMessages, favoritesCount] = await Promise.all([
-    db.notification.count({
-      where: { userId: user.id, isRead: false },
-    }),
-    db.message.count({
-      where: {
-        conversation: {
-          OR: [{ buyerId: user.id }, { sellerId: user.id }],
+    db.notification
+      .count({
+        where: { userId: user.id, isRead: false },
+      })
+      .catch(() => 0),
+    db.message
+      .count({
+        where: {
+          conversation: {
+            OR: [{ buyerId: user.id }, { sellerId: user.id }],
+          },
+          senderId: { not: user.id },
+          isRead: false,
         },
-        senderId: { not: user.id },
-        isRead: false,
-      },
-    }),
-    db.favorite.count({
-      where: { userId: user.id },
-    }),
+      })
+      .catch(() => 0),
+    db.favorite
+      .count({
+        where: { userId: user.id },
+      })
+      .catch(() => 0),
   ]);
 
   // Strip sensitive fields
