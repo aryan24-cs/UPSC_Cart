@@ -101,10 +101,17 @@ export async function GET(req: NextRequest) {
       favorites: undefined,
     }));
 
-    return NextResponse.json({
-      total: listings.length,
-      listings: formattedListings,
-    });
+    const headers: Record<string, string> = user
+      ? { "Cache-Control": "private, no-cache" }
+      : { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" };
+
+    return NextResponse.json(
+      {
+        total: listings.length,
+        listings: formattedListings,
+      },
+      { headers }
+    );
   } catch (error) {
     console.error("Error fetching listings:", error);
     return NextResponse.json({ error: "Failed to fetch listings" }, { status: 500 });

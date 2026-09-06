@@ -9,7 +9,10 @@ export async function GET() {
   try {
     const now = Date.now();
     if (cachedCategories && now - lastCacheTime < 60000) {
-      return NextResponse.json({ categories: cachedCategories });
+      return NextResponse.json(
+        { categories: cachedCategories },
+        { headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" } }
+      );
     }
 
     await ensureDatabaseSeeded(db);
@@ -28,7 +31,10 @@ export async function GET() {
     cachedCategories = categories;
     lastCacheTime = now;
 
-    return NextResponse.json({ categories });
+    return NextResponse.json(
+      { categories },
+      { headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" } }
+    );
   } catch (error) {
     console.error("Error fetching categories:", error);
     return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });

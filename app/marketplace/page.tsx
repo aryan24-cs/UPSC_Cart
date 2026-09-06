@@ -11,6 +11,25 @@ import {
 } from "lucide-react";
 import ListingCard, { ListingCardProps } from "@/components/ListingCard";
 
+const STATIC_CATEGORIES = [
+  { id: "books", name: "Books", slug: "books" },
+  { id: "notes", name: "Notes", slug: "notes" },
+  { id: "test-series", name: "Test Series", slug: "test-series" },
+  { id: "furniture", name: "Furniture", slug: "furniture" },
+  { id: "appliances", name: "Appliances", slug: "appliances" },
+  { id: "electronics", name: "Electronics", slug: "electronics" },
+  { id: "stationery", name: "Stationery", slug: "stationery" },
+  { id: "room-essentials", name: "Room Essentials", slug: "room-essentials" },
+];
+
+const STATIC_LOCATIONS = [
+  { id: "orn", name: "Old Rajinder Nagar", slug: "old-rajinder-nagar" },
+  { id: "mn", name: "Mukherjee Nagar", slug: "mukherjee-nagar" },
+  { id: "kb", name: "Karol Bagh", slug: "karol-bagh" },
+  { id: "pn", name: "Patel Nagar", slug: "patel-nagar" },
+  { id: "ln", name: "Laxmi Nagar", slug: "laxmi-nagar" },
+];
+
 function MarketplaceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,8 +44,8 @@ function MarketplaceContent() {
 
   const [listings, setListings] = useState<ListingCardProps[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [locations, setLocations] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>(STATIC_CATEGORIES);
+  const [locations, setLocations] = useState<any[]>(STATIC_LOCATIONS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Filter States

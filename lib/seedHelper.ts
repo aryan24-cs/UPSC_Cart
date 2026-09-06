@@ -11,7 +11,9 @@ function seedHash(password: string): string {
 }
 
 export async function ensureDatabaseSeeded(prisma: PrismaClient) {
-  if (databaseVerifiedSeeded || isSeeding) return;
+  if (process.env.NODE_ENV === "production" || databaseVerifiedSeeded || isSeeding) {
+    return;
+  }
 
   try {
     const [roomCount, listingCount, serviceCount] = await Promise.all([

@@ -31,5 +31,7 @@ function safeRun(cmd) {
 
 safeRun("npx prisma generate");
 safeRun("npx prisma db push --accept-data-loss --skip-generate");
-safeRun("npx tsx prisma/seed.ts");
+if (process.env.SEED_ON_BUILD === "true") {
+  safeRun("npx tsx prisma/seed.ts");
+}
 run("next build");

@@ -70,11 +70,16 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({
-      total: rooms.length,
-      rooms,
-      flatmates,
-    });
+    return NextResponse.json(
+      {
+        total: rooms.length,
+        rooms,
+        flatmates,
+      },
+      {
+        headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" },
+      }
+    );
   } catch (error) {
     console.error("Error fetching rooms:", error);
     return NextResponse.json({ error: "Failed to fetch rooms" }, { status: 500 });

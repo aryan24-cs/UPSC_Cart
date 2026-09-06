@@ -28,6 +28,17 @@ import {
 } from "lucide-react";
 import ListingCard, { ListingCardProps } from "@/components/ListingCard";
 
+const STATIC_CATEGORIES = [
+  { id: "books", name: "Books", slug: "books" },
+  { id: "notes", name: "Notes", slug: "notes" },
+  { id: "test-series", name: "Test Series", slug: "test-series" },
+  { id: "furniture", name: "Furniture", slug: "furniture" },
+  { id: "appliances", name: "Appliances", slug: "appliances" },
+  { id: "electronics", name: "Electronics", slug: "electronics" },
+  { id: "stationery", name: "Stationery", slug: "stationery" },
+  { id: "room-essentials", name: "Room Essentials", slug: "room-essentials" },
+];
+
 export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
@@ -35,7 +46,7 @@ export default function HomePage() {
 
   const [listings, setListings] = useState<ListingCardProps[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>(STATIC_CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
