@@ -22,9 +22,16 @@ export async function GET() {
       reservedListings,
       soldListings,
       totalRooms,
+      totalFlatmates,
+      totalServices,
       totalMessages,
+      totalOffers,
       totalReports,
       pendingReports,
+      activeListingsData,
+      soldListingsData,
+      categoriesWithCount,
+      locationsWithCount,
       recentListings,
       recentReports,
       users,
@@ -35,21 +42,53 @@ export async function GET() {
       db.listing.count({ where: { status: "RESERVED" } }),
       db.listing.count({ where: { status: "SOLD" } }),
       db.roomListing.count(),
+      db.flatmateProfile.count(),
+      db.service.count(),
       db.message.count(),
+      db.offer.count(),
       db.report.count(),
       db.report.count({ where: { status: "PENDING" } }),
       db.listing.findMany({
-        take: 8,
+        where: { status: "ACTIVE" },
+        select: { price: true },
+      }),
+      db.listing.findMany({
+        where: { status: "SOLD" },
+        select: { price: true },
+      }),
+      db.category.findMany({
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          _count: {
+            select: { listings: true },
+          },
+        },
+        orderBy: { sortOrder: "asc" },
+      }),
+      db.location.findMany({
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          _count: {
+            select: { listings: true, roomListings: true },
+          },
+        },
+      }),
+      db.listing.findMany({
+        take: 12,
         orderBy: { createdAt: "desc" },
         include: { seller: true, category: true, location: true },
       }),
       db.report.findMany({
-        take: 8,
+        take: 10,
         orderBy: { createdAt: "desc" },
         include: { reporter: true },
       }),
       db.user.findMany({
-        take: 10,
+        take: 15,
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -61,9 +100,17 @@ export async function GET() {
           isMobileVerified: true,
           coachingHub: true,
           createdAt: true,
+          _count: {
+            select: { listings: true },
+          },
         },
       }),
     ]);
+
+    // Financial & Inventory Aggregations
+    const activeInventoryValue = activeListingsData.reduce((acc, curr) => acc + (curr.price || 0), 0);
+    const completedSalesValue = soldListingsData.reduce((acc, curr) => acc + (curr.price || 0), 0);
+    const avgActivePrice = activeListings > 0 ? Math.round(activeInventoryValue / activeListings) : 0;
 
     return NextResponse.json({
       metrics: {
@@ -73,10 +120,29 @@ export async function GET() {
         reservedListings,
         soldListings,
         totalRooms,
+        totalFlatmates,
+        totalServices,
         totalMessages,
+        totalOffers,
         totalReports,
         pendingReports,
+        activeInventoryValue,
+        completedSalesValue,
+        avgActivePrice,
       },
+      categoryBreakdown: categoriesWithCount.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        count: c._count.listings,
+      })),
+      locationBreakdown: locationsWithCount.map((l) => ({
+        id: l.id,
+        name: l.name,
+        slug: l.slug,
+        listingsCount: l._count.listings,
+        roomsCount: l._count.roomListings,
+      })),
       recentListings,
       recentReports,
       users,
